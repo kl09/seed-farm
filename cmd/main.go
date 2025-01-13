@@ -4,9 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"log"
 	"log/slog"
 	"os"
 	"os/signal"
+	"runtime"
 	"syscall"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -20,7 +23,18 @@ const (
 	postgresDSN = "postgres://127.0.0.1:5432/wallet"
 )
 
+var goroutinesNumber = runtime.NumCPU()
+
 func main() {
+	f, err := os.OpenFile("logs.txt", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("error opening file: %v", err)
+		return
+	}
+
+	w := io.MultiWriter(os.Stdout, f)
+	slog.SetDefault(slog.New(slog.NewJSONHandler(w, nil)))
+
 	ctx, cancelFn := context.WithCancelCause(context.Background())
 
 	db, err := dialPG(ctx, postgresDSN)
@@ -31,7 +45,7 @@ func main() {
 
 	fNotifier := notifier.FileNotifier{}
 	balancesRepo := repository.NewBalancesRepository(db)
-	farmer := farm.NewFarmer(balancesRepo, &fNotifier, wallet.NewWallet, 5)
+	farmer := farm.NewFarmer(balancesRepo, &fNotifier, wallet.NewWallet, goroutinesNumber)
 
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)

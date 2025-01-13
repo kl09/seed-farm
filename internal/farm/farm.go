@@ -73,25 +73,17 @@ func (e *Farmer) Run(ctx context.Context, cancel context.CancelCauseFunc) {
 						err = e.notifier.WalletFound(ctx, wallet)
 						if err != nil {
 							logger.Error(fmt.Sprintf("wallet found notify error: %s %s", err, wallet.String()))
-							cancel(errors.New("wallet found"))
 						}
 					}
 
 					atomic.AddInt64(&counter, 1)
 					if time.Now().Add(-30 * time.Second).After(now) {
 						if statsMx.TryLock() {
-							logger.LogAttrs(
-								ctx, slog.LevelInfo,
-								"report", []slog.Attr{
-									{
-										Key:   "counter",
-										Value: slog.Int64Value(atomic.LoadInt64(&counter)),
-									},
-									{
-										Key:   "addresses/sec",
-										Value: slog.Int64Value(atomic.LoadInt64(&counter) / int64(time.Since(startedAt).Seconds())),
-									},
-								}...,
+							c := atomic.LoadInt64(&counter)
+							logger.Info(
+								"report",
+								"counter", c,
+								"addresses/sec", c/int64(time.Since(startedAt).Seconds()),
 							)
 							now = time.Now()
 							statsMx.Unlock()
