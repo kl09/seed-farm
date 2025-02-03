@@ -56,7 +56,7 @@ func main() {
 		cancelFn(errors.New("shutdown"))
 	}()
 
-	farmer.Run(ctx, cancelFn)
+	farmer.Run(ctx)
 }
 
 func dialPG(ctx context.Context, dsn string) (*pgxpool.Pool, error) {

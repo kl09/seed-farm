@@ -25,7 +25,7 @@ func (r *BalancesRepository) Exists(ctx context.Context, address string) (bool, 
 	var exists int
 	err := r.db.QueryRow(
 		ctx,
-		`SELECT 1 FROM wallets_with_balance WHERE address = $1`,
+		`SELECT 1 FROM wallets WHERE address = $1`,
 		address,
 	).Scan(&exists)
 	if err != nil {

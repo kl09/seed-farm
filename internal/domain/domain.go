@@ -4,6 +4,7 @@ package domain
 import (
 	"context"
 	"fmt"
+	"strings"
 )
 
 // Wallet is a struct that contains the information of a wallet.
@@ -11,6 +12,10 @@ type Wallet struct {
 	ETHAddress string
 	PrivateKey string
 	Mnemonic   string
+}
+
+func (w Wallet) ETHAddressFormated() string {
+	return strings.ToLower(w.ETHAddress)[2:]
 }
 
 func (w Wallet) String() string {

@@ -58,6 +58,31 @@ func NewWallet() (domain.Wallet, error) {
 	}, nil
 }
 
+func NewWalletByMnemonic(mnemonic string) (domain.Wallet, error) {
+	privateKey, err := deriveWallet(
+		bip39.NewSeed(mnemonic, ""),
+		DefaultBaseDerivationPath,
+	)
+	if err != nil {
+		return domain.Wallet{}, fmt.Errorf("derive wallet: %w", err)
+	}
+
+	privateKeyString, err := privateKeyToString(privateKey)
+	if err != nil {
+		return domain.Wallet{}, fmt.Errorf("private key to string: %w", err)
+	}
+	publicKeyString, err := publicKeyToString(&privateKey.PublicKey)
+	if err != nil {
+		return domain.Wallet{}, fmt.Errorf("public key to string: %w", err)
+	}
+
+	return domain.Wallet{
+		ETHAddress: publicKeyString,
+		PrivateKey: privateKeyString,
+		Mnemonic:   mnemonic,
+	}, nil
+}
+
 func privateKeyToString(key *ecdsa.PrivateKey) (string, error) {
 	if key == nil {
 		return "", errors.New("private key is nil")

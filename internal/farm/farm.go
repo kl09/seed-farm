@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -34,7 +33,7 @@ func NewFarmer(
 	}
 }
 
-func (e *Farmer) Run(ctx context.Context, cancel context.CancelCauseFunc) {
+func (e *Farmer) Run(ctx context.Context) {
 	var (
 		counter   int64
 		wg        = sync.WaitGroup{}
@@ -61,8 +60,7 @@ func (e *Farmer) Run(ctx context.Context, cancel context.CancelCauseFunc) {
 						continue
 					}
 
-					addressFormated := strings.ToUpper(wallet.ETHAddress)[2:]
-					exists, err := e.balancesRepository.Exists(ctx, addressFormated)
+					exists, err := e.balancesRepository.Exists(ctx, wallet.ETHAddressFormated())
 					if err != nil {
 						if errors.Is(err, context.Canceled) {
 							return
